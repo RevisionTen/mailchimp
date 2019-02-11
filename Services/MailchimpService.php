@@ -5,26 +5,22 @@ declare(strict_types=1);
 namespace RevisionTen\Mailchimp\Services;
 
 use GuzzleHttp\Client;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class MailchimpService
 {
-    /** @var RequestStack */
-    private $requestStack;
-
     /** @var array */
     private $config;
 
     /** @var Client */
     private $client;
 
-    public function __construct(RequestStack $requestStack, array $config)
+    public function __construct(array $config)
     {
-        $this->requestStack = $requestStack;
         $this->config = $config;
 
         $apiKey = $this->config['api_key'] ?? '';
-        $server = end(explode('-', $apiKey));
+        $apiKeyParts = explode('-', $apiKey);
+        $server = end($apiKeyParts);
 
         if (!$server) {
             throw new \Exception('Mailchimp server could not be read from api_key');
@@ -41,6 +37,17 @@ class MailchimpService
         ]);
     }
 
+    /**
+     * Subscribes a user to a list.
+     *
+     * @param string      $campaign
+     * @param string      $email
+     * @param string|NULL $source
+     * @param array       $mergeFields
+     *
+     * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function subscribe(string $campaign, string $email, string $source = null, array $mergeFields = []): bool
     {
         if (!isset($this->config['campaigns'][$campaign])) {
@@ -51,14 +58,21 @@ class MailchimpService
             $source = 'symfony';
         }
 
-        $requestBody = json_encode([
+        $requestData = [
             'email_address' => $email,
             'status' => 'pending',
-            'merge_fields' => $mergeFields,
-        ]);
+        ];
 
-        // Add subscriber to recipient list.
-        $response = $this->client->request('POST', 'lists/'.$this->config['campaigns'][$campaign]['list_id'].'/members/', [
+        if (!empty($mergeFields)) {
+            $requestData['merge_fields'] = $mergeFields;
+        }
+
+        $requestBody = json_encode($requestData);
+
+        $subscriberHash = md5(strtolower($email));
+
+        // Add subscriber to recipient list or update If already exists.
+        $response = $this->client->request('PUT', 'lists/'.$this->config['campaigns'][$campaign]['list_id'].'/members/'.$subscriberHash, [
             'body' => $requestBody,
             'http_errors' => false,
         ]);
@@ -77,6 +91,7 @@ class MailchimpService
      * @param string $email
      *
      * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function unsubscribe(string $campaign, string $email): bool
     {
