@@ -1,0 +1,5 @@
+services:
+    RevisionTen\Mailchimp\Services\MailchimpService:
+        autowire: true
+        arguments:
+            $config: '%mailchimp%'

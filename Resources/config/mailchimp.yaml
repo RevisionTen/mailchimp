@@ -1,0 +1,6 @@
+# Mailchimp example config.
+mailchimp:
+    api_key: 'XXXXXXXXXXXXXXXXXXXXXXX-us5' # Your mailchimp api key.
+    campaigns:
+        dailyNewsletterCampagin:
+            list_id: '123456' # Id of your newsletter list.
