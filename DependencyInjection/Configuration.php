@@ -9,10 +9,8 @@ class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        // Todo: https://symfony.com/blog/new-in-symfony-4-2-important-deprecations?#deprecated-tree-builders-without-root-nodes
-        $rootNode = $treeBuilder->root('mailchimp');
-        $rootNode
+        $treeBuilder = new TreeBuilder('mailchimp');
+        $treeBuilder->getRootNode()
             ->children()
                 ->scalarNode('api_key')->end()
                 ->arrayNode('campaigns')
