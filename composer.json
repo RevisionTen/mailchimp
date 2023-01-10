@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": "^7.4",
+        "php": ">=7.4.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6",
         "symfony/dependency-injection": "^5.3"
